@@ -9,50 +9,22 @@
 
   const selectedMachine = $derived(machines.find(m => m.id === selectedMachineId));
 
-  function cleanNmapOutput(event) {
-    const input = event.target.value;
-    let shouldKeep = false;
-    let cleaned = [];
-    
-    const lines = input.split('\n');
-    
-    for (const line of lines) {
-      // Remove sudo password lines
-      if (line.includes('[sudo] password for')) continue;
-      
-      // Start keeping after "Host is up" line
-      if (line.includes('Host is up')) {
-        shouldKeep = true;
-      }
-      
-      // Stop at OS detection line
-      if (line.includes('OS and Service detection performed')) {
-        break;
-      }
-      
-      if (shouldKeep) {
-        cleaned.push(line);
-      }
-    }
-    
-    // Update the nmap output with cleaned version
-    selectedMachine.nmapOutput = cleaned.join('\n');
-  }
-
+  // Templates
+  const nmapTemplate = (ip) => `sudo nmap -sC -sV -A --stats-every 0 ${ip}`;
+  const dirbTemplate = (ip) => `dirb http://${ip}`;
+  const ffufTemplate = (ip) => `ffuf -u http://FUZZ.${ip}/ -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt`;
 
   // Notification system
-  function showNotification(type) {
-    if (type === "copy") {
-      showCopyNotification = true;
-      if (notificationTimeout) clearTimeout(notificationTimeout);
-      notificationTimeout = setTimeout(() => showCopyNotification = false, 2000);
-    }
+  function showNotification() {
+    showCopyNotification = true;
+    if (notificationTimeout) clearTimeout(notificationTimeout);
+    notificationTimeout = setTimeout(() => showCopyNotification = false, 2000);
   }
 
-  // Copy to clipboard with notification
+  // Copy to clipboard
   function copyCommand(command) {
     navigator.clipboard.writeText(command);
-    showNotification("copy");
+    showNotification();
   }
 
   // Delete confirmation
@@ -75,10 +47,7 @@
     }
   });
 
-  // Rest of the functions remain the same
-  const nmapTemplate = (ip) => `sudo nmap -sC -sV -A --stats-every 0 ${ip}`;
-  const dirbTemplate = (ip) => `dirb http://${ip}`;
-
+  // Machine management
   function addMachine() {
     if (!newMachineName || !newMachineIp) return;
     
@@ -87,8 +56,10 @@
       name: newMachineName,
       ip: newMachineIp,
       notes: '',
-      foundItems: [],
-      customCommands: []
+      nmapOutput: '',
+      dirbOutput: '',
+      ffufOutput: '',
+      foundItems: []
     }];
     
     newMachineName = '';
@@ -116,15 +87,95 @@
       alert('Invalid JSON');
     }
   }
+
+  // Enhanced paste handlers with filtering
+  function handlePaste(e) {
+    const text = e.clipboardData.getData('text/plain');
+    const target = e.target;
+    
+    if (target.classList.contains('nmap-output')) {
+      selectedMachine.nmapOutput = cleanNmapOutput(text);
+    }
+    else if (target.classList.contains('dirb-output')) {
+      selectedMachine.dirbOutput = cleanDirbOutput(text);
+    }
+    else if (target.classList.contains('ffuf-output')) {
+      selectedMachine.ffufOutput = cleanFfufOutput(text);
+    }
+  }
+
+  // Nmap output cleaner
+  function cleanNmapOutput(input) {
+    let shouldKeep = false;
+    const cleaned = [];
+    
+    const lines = input.split('\n');
+    
+    for (const line of lines) {
+      // Remove sudo password lines
+      if (line.includes('[sudo] password for')) continue;
+      
+      // Start keeping after "Host is up" line
+      if (line.includes('Host is up')) {
+        shouldKeep = true;
+      }
+      
+      // Stop at OS detection line
+      if (line.includes('OS and Service detection performed')) {
+        break;
+      }
+      
+      if (shouldKeep) {
+        cleaned.push(line);
+      }
+    }
+    
+    return cleaned.join('\n');
+  }
+
+  // Dirb output cleaner
+  function cleanDirbOutput(input) {
+    const cleaned = input.split('\n').filter(line => 
+      !line.includes('[sudo] password for') &&
+      !line.startsWith('DIRB') &&
+      !line.startsWith('---') &&
+      !line.startsWith('+') &&
+      line.trim() !== ''
+    ).join('\n');
+    
+    return cleaned;
+  }
+
+  // FFUF output cleaner
+  function cleanFfufOutput(input) {
+    const lines = input.split('\n');
+    let keepLines = false;
+    const cleaned = [];
+    
+    for (const line of lines) {
+      // Start capturing after filter line
+      if (line.includes(':: Matcher')) {
+        keepLines = true;
+        continue;
+      }
+      
+      if (keepLines && line.trim() && !line.startsWith('::')) {
+        cleaned.push(line);
+      }
+    }
+    
+    return cleaned.join('\n');
+  }
 </script>
 
 <div class="min-h-screen bg-gray-900 text-gray-100 flex flex-col sm:flex-row">
-   <!-- Copy Notification -->
+  <!-- Notification -->
   {#if showCopyNotification}
     <div class="fixed top-4 left-1/2 -translate-x-1/2 px-6 py-3 bg-green-600 rounded-lg shadow-lg animate-fade-in-out">
       Copied to clipboard!
     </div>
   {/if}
+
   <!-- Sidebar -->
   <aside class="w-full sm:w-64 p-4 border-r border-gray-700 bg-gray-800">
     <h1 class="text-2xl font-bold mb-6">Pwn-Panel</h1>
@@ -186,7 +237,7 @@
   </aside>
 
   <!-- Main Content -->
-  <main class="flex-1 p-4 overflow-auto">
+  <main class="flex-1 p-4 overflow-auto" on:paste={handlePaste}>
     {#if selectedMachine}
       <div class="max-w-4xl mx-auto space-y-6">
         <!-- Header -->
@@ -210,7 +261,7 @@
         </div>
 
         <!-- Commands -->
-        <div class="grid gap-4 sm:grid-cols-2">
+        <div class="grid gap-4 sm:grid-cols-3">
           <div class="space-y-2">
             <label class="block text-sm font-medium">Nmap Command</label>
             <div class="flex gap-2">
@@ -244,16 +295,34 @@
               </button>
             </div>
           </div>
+
+          <div class="space-y-2">
+            <label class="block text-sm font-medium">FFUF Command</label>
+            <div class="flex gap-2">
+              <input
+                value={ffufTemplate(selectedMachine.ip)}
+                readonly
+                class="flex-1 p-2 rounded bg-gray-800 border border-gray-700 font-mono text-sm"
+              />
+              <button
+                on:click={() => copyCommand(ffufTemplate(selectedMachine.ip))}
+                class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded transition-colors"
+              >
+                Copy
+              </button>
+            </div>
+          </div>
         </div>
-        <!-- Scan Outputs -->
-        <div class="grid gap-4 sm:grid-cols-2">
+
+        <!-- Outputs -->
+        <div class="grid gap-4 sm:grid-cols-3">
           <div class="space-y-2">
             <label class="block text-sm font-medium">Nmap Output</label>
             <textarea
               bind:value={selectedMachine.nmapOutput}
-              on:input={(e) => cleanNmapOutput(e)}
+              readonly
+              class="nmap-output w-full p-2 rounded bg-gray-800 border border-gray-700 font-mono text-sm h-64"
               placeholder="Paste nmap output here..."
-              class="w-full p-2 rounded bg-gray-800 border border-gray-700 font-mono text-sm h-64"
             />
           </div>
 
@@ -261,8 +330,19 @@
             <label class="block text-sm font-medium">Dirb Output</label>
             <textarea
               bind:value={selectedMachine.dirbOutput}
+              readonly
+              class="dirb-output w-full p-2 rounded bg-gray-800 border border-gray-700 font-mono text-sm h-64"
               placeholder="Paste dirb output here..."
-              class="w-full p-2 rounded bg-gray-800 border border-gray-700 font-mono text-sm h-64"
+            />
+          </div>
+
+          <div class="space-y-2">
+            <label class="block text-sm font-medium">FFUF Output</label>
+            <textarea
+              bind:value={selectedMachine.ffufOutput}
+              readonly
+              class="ffuf-output w-full p-2 rounded bg-gray-800 border border-gray-700 font-mono text-sm h-64"
+              placeholder="Paste ffuf output here..."
             />
           </div>
         </div>
@@ -316,6 +396,7 @@
     {/if}
   </main>
 </div>
+
 <style>
   @keyframes fade-in-out {
     0% { opacity: 0; transform: translateY(-20px); }
@@ -326,5 +407,18 @@
 
   .animate-fade-in-out {
     animation: fade-in-out 2s ease-in-out forwards;
+  }
+
+  textarea[readonly] {
+    cursor: text;
+    background-color: #1f2937;
+    border-color: #374151;
+    color: #f3f4f6;
+  }
+  
+  textarea[readonly]:focus {
+    outline: none;
+    border-color: #4b5563;
+    box-shadow: 0 0 0 2px rgba(156, 163, 175, 0.1);
   }
 </style>
