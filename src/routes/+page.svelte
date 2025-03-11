@@ -7,6 +7,70 @@
   let showCopyNotification = $state(false);
   let notificationTimeout = $state(null);
 
+const extractedPorts = $derived(() => {
+  // Debug: Check if selectedMachine exists
+  if (!selectedMachine) {
+    console.log('No machine selected');
+    return [];
+  }
+
+  // Debug: Check nmapOutput
+  if (!selectedMachine.nmapOutput) {
+    console.log('No Nmap output available');
+    return [];
+  }
+
+  const lines = selectedMachine.nmapOutput.split('\n');
+  const ports = [];
+  
+  for (const line of lines) {
+    // Debug: Log each line being processed
+    console.log('Processing line:', line);
+
+    const portMatch = line.match(/(\d+)\/(tcp|udp)\s+open\s+([\w-]+)(?:\s+(.*))?/);
+    if (portMatch) {
+      ports.push({
+        number: portMatch[1],
+        protocol: portMatch[2],
+        service: portMatch[3],
+        version: portMatch[4]?.trim()
+      });
+    }
+  }
+
+  // Debug: Log final ports array
+  return ports;
+});
+
+  const extractedUrls = $derived(() => {
+    if (!selectedMachine?.dirbOutput) return [];
+    const lines = selectedMachine.dirbOutput.split('\n');
+    const urls = [];
+    
+    for (const line of lines) {
+      const urlMatch = line.match(/((?:http|https):\/\/[^\s]+)/);
+      if (urlMatch) {
+        const url = urlMatch[1];
+        urls.push(url);
+      }
+    }
+    return [...new Set(urls)]; // Remove duplicates
+  });
+
+  const extractedSubdomains = $derived(() => {
+    if (!selectedMachine?.ffufOutput) return [];
+    const lines = selectedMachine.ffufOutput.split('\n');
+    const subdomains = [];
+    
+    for (const line of lines) {
+      const subdomainMatch = line.match(/^(\S+)\s+/);
+      if (subdomainMatch) {
+        subdomains.push(subdomainMatch[1].trim());
+      }
+    }
+    return [...new Set(subdomains)]; // Remove duplicates
+  });
+
   const selectedMachine = $derived(machines.find(m => m.id === selectedMachineId));
 
   // Templates
@@ -95,9 +159,11 @@
     
     if (target.classList.contains('nmap-output')) {
       selectedMachine.nmapOutput = cleanNmapOutput(text);
+      selectedMachine.extractedPorts = extractedPorts();
     }
     else if (target.classList.contains('dirb-output')) {
       selectedMachine.dirbOutput = cleanDirbOutput(text);
+      selectedMachine.extractedUrls = extractedUrls();
     }
     else if (target.classList.contains('ffuf-output')) {
       selectedMachine.ffufOutput = cleanFfufOutput(text);
@@ -136,11 +202,7 @@
   // Dirb output cleaner
   function cleanDirbOutput(input) {
     const cleaned = input.split('\n').filter(line => 
-      !line.includes('[sudo] password for') &&
-      !line.startsWith('DIRB') &&
-      !line.startsWith('---') &&
-      !line.startsWith('+') &&
-      line.trim() !== ''
+      line.startsWith('+')
     ).join('\n');
     
     return cleaned;
@@ -251,6 +313,25 @@
             Delete Machine
           </button>
         </div>
+        <div class="space-y-4">
+  <h3 class="text-xl font-bold htb-accent">Machine Information</h3>
+  
+  <!-- Ports Section -->
+  {#if selectedMachine.extractedPorts.length > 0}
+    <div class="bg-htb-secondary p-4 rounded">
+      <h4 class="font-bold mb-2">Open Ports</h4>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        {#each selectedMachine.extractedPorts as port}
+          <div class="p-2 rounded bg-htb-primary text-htb-bg">
+            <span class="font-mono">{port.number}/{port.protocol}</span> - {port.service}
+            {#if port.version}<div class="text-sm">{port.version}</div>{/if}
+          </div>
+        {/each}
+      </div>
+    </div>
+  {/if}
+
+
 
         <!-- IP Address -->
         <div class="space-y-2">
@@ -356,6 +437,35 @@
             class="w-full p-2 rounded bg-gray-800 border border-gray-700 h-48"
           />
         </div>
+  <!-- URLs Section -->
+  {#if extractedUrls.length > 0}
+    <div class="bg-htb-secondary p-4 rounded">
+      <h4 class="font-bold mb-2">Discovered URLs</h4>
+      <div class="flex flex-col gap-1">
+        {#each extractedUrls as url}
+          <a href={url} target="_blank" class="hover:text-htb-primary break-all">
+            <span class="font-mono">➜ {url}</span>
+          </a>
+        {/each}
+      </div>
+    </div>
+  {/if}
+
+  <!-- Subdomains Section -->
+  {#if extractedSubdomains.length > 0}
+    <div class="bg-htb-secondary p-4 rounded">
+      <h4 class="font-bold mb-2">Discovered Subdomains</h4>
+      <div class="flex flex-wrap gap-2">
+        {#each extractedSubdomains as subdomain}
+          <div class="px-2 py-1 rounded bg-htb-primary text-htb-bg font-mono">
+            {subdomain}
+          </div>
+        {/each}
+      </div>
+    </div>
+  {/if}
+</div>
+
 
         <!-- Found Items -->
         <div class="space-y-2">
