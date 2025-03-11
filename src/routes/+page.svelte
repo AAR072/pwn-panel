@@ -10,16 +10,18 @@
   const selectedMachine = $derived(machines.find(m => m.id === selectedMachineId));
 
   // Notification system
-  function showNotification() {
-    showCopyNotification = true;
-    if (notificationTimeout) clearTimeout(notificationTimeout);
-    notificationTimeout = setTimeout(() => showCopyNotification = false, 2000);
+  function showNotification(type) {
+    if (type === "copy") {
+      showCopyNotification = true;
+      if (notificationTimeout) clearTimeout(notificationTimeout);
+      notificationTimeout = setTimeout(() => showCopyNotification = false, 2000);
+    }
   }
 
   // Copy to clipboard with notification
   function copyCommand(command) {
     navigator.clipboard.writeText(command);
-    showNotification();
+    showNotification("copy");
   }
 
   // Delete confirmation
@@ -43,8 +45,8 @@
   });
 
   // Rest of the functions remain the same
-  const nmapTemplate = (ip) => `nmap -sC -sV -oA nmap/initial ${ip}`;
-  const dirbTemplate = (ip) => `dirb http://${ip} /usr/share/wordlists/dirb/common.txt`;
+  const nmapTemplate = (ip) => `sudo nmap -sC -sV -A ${ip}`;
+  const dirbTemplate = (ip) => `dirb http://${ip}`;
 
   function addMachine() {
     if (!newMachineName || !newMachineIp) return;
@@ -204,12 +206,32 @@
                 class="flex-1 p-2 rounded bg-gray-800 border border-gray-700 font-mono text-sm"
               />
               <button
-                on:click={() => navigator.clipboard.writeText(dirbTemplate(selectedMachine.ip))}
+                on:click={() => copyCommand(dirbTemplate(selectedMachine.ip))}
                 class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded transition-colors"
               >
                 Copy
               </button>
             </div>
+          </div>
+        </div>
+        <!-- Scan Outputs -->
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div class="space-y-2">
+            <label class="block text-sm font-medium">Nmap Output</label>
+            <textarea
+              bind:value={selectedMachine.nmapOutput}
+              placeholder="Paste nmap output here..."
+              class="w-full p-2 rounded bg-gray-800 border border-gray-700 font-mono text-sm h-64"
+            />
+          </div>
+
+          <div class="space-y-2">
+            <label class="block text-sm font-medium">Dirb Output</label>
+            <textarea
+              bind:value={selectedMachine.dirbOutput}
+              placeholder="Paste dirb output here..."
+              class="w-full p-2 rounded bg-gray-800 border border-gray-700 font-mono text-sm h-64"
+            />
           </div>
         </div>
 
