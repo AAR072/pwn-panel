@@ -168,17 +168,17 @@
   }
 </script>
 
-<div class="min-h-screen bg-gray-900 text-gray-100 flex flex-col sm:flex-row">
+<div class="htb-bg min-h-screen text-gray-100 flex flex-col sm:flex-row">
   <!-- Notification -->
   {#if showCopyNotification}
-    <div class="fixed top-4 left-1/2 -translate-x-1/2 px-6 py-3 bg-green-600 rounded-lg shadow-lg animate-fade-in-out">
+   <div class="notification fixed top-4 left-1/2 -translate-x-1/2 px-6 py-3 rounded-lg shadow-lg animate-fade-in-out">
       Copied to clipboard!
     </div>
   {/if}
 
   <!-- Sidebar -->
   <aside class="w-full sm:w-64 p-4 border-r border-gray-700 bg-gray-800">
-    <h1 class="text-2xl font-bold mb-6">Pwn-Panel</h1>
+<h1 class="text-2xl font-bold mb-6 htb-accent">Pwn-Panel</h1>
     
     <div class="space-y-4 mb-8">
       <input
@@ -244,8 +244,9 @@
         <div class="flex items-center justify-between mb-8">
           <h2 class="text-3xl font-bold">{selectedMachine.name}</h2>
           <button
+            id="deleteButton"
             on:click={() => deleteMachine(selectedMachineId)}
-            class="p-2 bg-red-600 hover:bg-red-700 rounded transition-colors"
+            class="p-2 rounded transition-colors"
           >
             Delete Machine
           </button>
@@ -398,6 +399,89 @@
 </div>
 
 <style>
+
+  :global(body) {
+    background-color: #0d1117;
+    color: #c9d1d9;
+    font-family: 'Roboto Mono', monospace;
+  }
+
+  /* HTB Color Scheme */
+  .htb-primary {
+    background-color: #9fef00;
+    color: #0d1117;
+  }
+
+  .htb-secondary {
+    background-color: #1f2937;
+    border-color: #9fef00;
+  }
+
+  .htb-accent {
+    color: #9fef00;
+  }
+
+  .htb-bg {
+    background-color: #0d1117;
+  }
+
+  .htb-border {
+    border-color: #9fef00;
+  }
+
+  /* Sidebar */
+  aside {
+    background-color: #161b22;
+    border-right: 1px solid #9fef00;
+  }
+
+  /* Buttons */
+  button {
+    background-color: #1f2937;
+    border: 1px solid #9fef00;
+    color: #9fef00;
+    transition: all 0.2s ease;
+  }
+
+  button:hover {
+    background-color: #9fef00;
+    color: #0d1117;
+  }
+
+  /* Inputs */
+  input, textarea {
+    background-color: #161b22;
+    border: 1px solid #9fef00;
+    color: #c9d1d9;
+  }
+
+  input:focus {
+    outline: none;
+    border-color: #9fef00;
+    box-shadow: 0 0 0 2px rgba(159, 239, 0, 0.2);
+  }
+  textarea:focus {
+    outline: none;
+    border-color: #1c6105 !important;
+    box-shadow: 0 0 0 2px rgba(159, 239, 0, 0.2) !important;
+  }
+
+  /* Textareas */
+  textarea[readonly] {
+    background-color: #161b22;
+    border-color: #9fef00;
+    color: #c9d1d9;
+    cursor: text;
+  }
+
+  /* Notification */
+  .notification {
+    background-color: #9fef00;
+    color: #0d1117;
+    border: 1px solid #9fef00;
+  }
+
+  /* Animations */
   @keyframes fade-in-out {
     0% { opacity: 0; transform: translateY(-20px); }
     15% { opacity: 1; transform: translateY(0); }
@@ -409,16 +493,32 @@
     animation: fade-in-out 2s ease-in-out forwards;
   }
 
-  textarea[readonly] {
-    cursor: text;
-    background-color: #1f2937;
-    border-color: #374151;
-    color: #f3f4f6;
+  /* Scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
   }
-  
-  textarea[readonly]:focus {
-    outline: none;
-    border-color: #4b5563;
-    box-shadow: 0 0 0 2px rgba(156, 163, 175, 0.1);
+
+  ::-webkit-scrollbar-track {
+    background: #161b22;
   }
+
+  ::-webkit-scrollbar-thumb {
+    background: #9fef00;
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #7fbf00;
+  }
+
+  #deleteButton {
+background-color: #ff3e3e1a; 
+color: #ff3e3e; 
+border: none;
+}
+
+#deleteButton:hover  {
+background-color: #7d1b14; 
+
+}
 </style>
