@@ -9,6 +9,37 @@
 
   const selectedMachine = $derived(machines.find(m => m.id === selectedMachineId));
 
+  function cleanNmapOutput(event) {
+    const input = event.target.value;
+    let shouldKeep = false;
+    let cleaned = [];
+    
+    const lines = input.split('\n');
+    
+    for (const line of lines) {
+      // Remove sudo password lines
+      if (line.includes('[sudo] password for')) continue;
+      
+      // Start keeping after "Host is up" line
+      if (line.includes('Host is up')) {
+        shouldKeep = true;
+      }
+      
+      // Stop at OS detection line
+      if (line.includes('OS and Service detection performed')) {
+        break;
+      }
+      
+      if (shouldKeep) {
+        cleaned.push(line);
+      }
+    }
+    
+    // Update the nmap output with cleaned version
+    selectedMachine.nmapOutput = cleaned.join('\n');
+  }
+
+
   // Notification system
   function showNotification(type) {
     if (type === "copy") {
@@ -45,7 +76,7 @@
   });
 
   // Rest of the functions remain the same
-  const nmapTemplate = (ip) => `sudo nmap -sC -sV -A ${ip}`;
+  const nmapTemplate = (ip) => `sudo nmap -sC -sV -A --stats-every 0 ${ip}`;
   const dirbTemplate = (ip) => `dirb http://${ip}`;
 
   function addMachine() {
@@ -220,6 +251,7 @@
             <label class="block text-sm font-medium">Nmap Output</label>
             <textarea
               bind:value={selectedMachine.nmapOutput}
+              on:input={(e) => cleanNmapOutput(e)}
               placeholder="Paste nmap output here..."
               class="w-full p-2 rounded bg-gray-800 border border-gray-700 font-mono text-sm h-64"
             />
