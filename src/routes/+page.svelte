@@ -70,22 +70,25 @@ $effect(() => {
 });
 
 $effect(() => {
-  if (!selectedMachine?.ffufOutput){
+  if (!selectedMachine?.ffufOutput) {
     extractedSubdomains = [];
   } else {
-  const lines = selectedMachine.ffufOutput.split('\n');
-  const subdomains = [];
+    const lines = selectedMachine.ffufOutput.split('\n');
+    const subdomains = [];
 
-  for (const line of lines) {
-    const subdomainMatch = line.match(/^(\S+)\s+/);
-    if (subdomainMatch) {
-      subdomains.push(subdomainMatch[1].trim());
+    for (const line of lines) {
+      const match = line.match(/^(\S+)\s+\[Status:\s*(\d+)/);
+      if (match) {
+        subdomains.push({
+          name: match[1].trim(),
+          status: match[2], // Keep it as a string for easy handling
+        });
+      }
     }
-  }
-  extractedSubdomains = subdomains;
+
+    extractedSubdomains = subdomains;
   }
 });
-
 const selectedMachine = $derived(machines.find(m => m.id === selectedMachineId));
 
 // Templates
@@ -348,9 +351,25 @@ function cleanFfufOutput(input) {
             <div class="bg-htb-secondary p-1 rounded">
               <h4 class="font-bold mb-2">Subdomains</h4>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {#each extractedSubdomains as subdomain}
+                {#each extractedSubdomains as item}
                   <div class="p-2 rounded bg-htb-primary text-htb-bg">
-                    <span class="font-mono">{subdomain}</span>
+                    <span class="font-mono">
+                      {item.name}
+                    </span>
+                    {#if item.status !== null}
+                      <span class="ml-2 text-gray-300">
+                        {#if String(item.status).startsWith("200")}✅ Accessible (CODE: {item.status}){/if}
+                        {#if String(item.status).startsWith("301") || String(item.status).startsWith("302")}🔀 Redirect (CODE: {item.status}){/if}
+                        {#if String(item.status).startsWith("403")}⛔ Forbidden (CODE: {item.status}){/if}
+                        {#if String(item.status).startsWith("404")}❌ Not Found (CODE: {item.status}){/if}
+                        {#if String(item.status).startsWith("500")}🔥 Server Error (CODE: {item.status}){/if}
+                        {#if !(String(item.status).startsWith("200") || String(item.status).startsWith("301") ||
+                          String(item.status).startsWith("302") || String(item.status).startsWith("403") ||
+                          String(item.status).startsWith("404") || String(item.status).startsWith("500"))}
+                          📌 Unknown Status (CODE: {item.status})
+                        {/if}
+                      </span>
+                    {/if}
                   </div>
                 {/each}
               </div>
