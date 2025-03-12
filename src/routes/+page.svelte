@@ -318,7 +318,7 @@ function cleanFfufOutput(input) {
   <!-- Main Content -->
   <main class="flex-1 p-4 overflow-auto" on:paste={handlePaste}>
     {#if selectedMachine}
-      <div class="max-w-4xl mx-auto space-y-6">
+      <div class="mx-auto space-y-6">
         <!-- Header -->
         <div class="flex items-center justify-between mb-8">
           <h2 class="text-3xl font-bold">{selectedMachine.name}</h2>
@@ -333,7 +333,7 @@ function cleanFfufOutput(input) {
         <div class="space-y-4">
           <h3 class="text-xl font-bold htb-accent">Machine Information</h3>
 
-          <!-- Ports Section -->
+          <!-- Machine Info Section -->
           {#if extractedPorts.length > 0}
             <div class="bg-htb-secondary p-1 rounded">
               <h4 class="font-bold mb-2">Open Ports</h4>
@@ -562,124 +562,139 @@ function cleanFfufOutput(input) {
 <style>
 
 :global(body) {
-background-color: #0d1117;
-color: #c9d1d9;
-font-family: 'Roboto Mono', monospace;
+  background-color: #0d1117;
+  color: #c9d1d9;
+  font-family: 'Roboto Mono', monospace;
 }
 
 /* HTB Color Scheme */
 .htb-primary {
-background-color: #9fef00;
-color: #0d1117;
+  background-color: #9fef00;
+  color: #0d1117;
 }
 
 .htb-secondary {
-background-color: #1f2937;
-border-color: #9fef00;
+  background-color: #1f2937;
+  border-color: #9fef00;
 }
 
 .htb-accent {
-color: #9fef00;
+  color: #9fef00;
 }
 
 .htb-bg {
-background-color: #0d1117;
+  background-color: #0d1117;
 }
 
 .htb-border {
-border-color: #9fef00;
+  border-color: #9fef00;
 }
 
 /* Sidebar */
 aside {
-background-color: #161b22;
-border-right: 1px solid #9fef00;
+  background-color: #161b22;
+  border-right: 1px solid #9fef00;
 }
 
 /* Buttons */
 button {
-background-color: #1f2937;
-border: 1px solid #9fef00;
-color: #9fef00;
-transition: all 0.2s ease;
+  background-color: #1f2937;
+  border: 1px solid #9fef00;
+  color: #9fef00;
+  transition: all 0.2s ease;
 }
 
 button:hover {
-background-color: #9fef00;
-color: #0d1117;
+  background-color: #9fef00;
+  color: #0d1117;
 }
 
 /* Inputs */
 input, textarea {
-background-color: #161b22;
-border: 1px solid #9fef00;
-color: #c9d1d9;
+  background-color: #161b22;
+  border: 1px solid #9fef00;
+  color: #c9d1d9;
 }
 
 input:focus {
-outline: none;
-border-color: #9fef00;
-box-shadow: 0 0 0 2px rgba(159, 239, 0, 0.2);
+  outline: none;
+  border-color: #9fef00;
+  box-shadow: 0 0 0 2px rgba(159, 239, 0, 0.2);
 }
 textarea:focus {
-outline: none;
-border-color: #1c6105 !important;
-box-shadow: 0 0 0 2px rgba(159, 239, 0, 0.2) !important;
+  outline: none;
+  border-color: #1c6105 !important;
+  box-shadow: 0 0 0 2px rgba(159, 239, 0, 0.2) !important;
 }
 
 /* Textareas */
 textarea[readonly] {
-background-color: #161b22;
-border-color: #9fef00;
-color: #c9d1d9;
-cursor: text;
+  background-color: #161b22;
+  border-color: #9fef00;
+  color: #c9d1d9;
+  cursor: text;
 }
 
 /* Notification */
 .notification {
-background-color: #9fef00;
-color: #0d1117;
-border: 1px solid #9fef00;
+  background-color: #9fef00;
+  color: #0d1117;
+  border: 1px solid #9fef00;
 }
 
 /* Animations */
 @keyframes fade-in-out {
-0% { opacity: 0; transform: translateY(-20px); }
-15% { opacity: 1; transform: translateY(0); }
-85% { opacity: 1; transform: translateY(0); }
-100% { opacity: 0; transform: translateY(-20px); }
+  0% { opacity: 0; transform: translateY(-20px); }
+  15% { opacity: 1; transform: translateY(0); }
+  85% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-20px); }
 }
 
 .animate-fade-in-out {
-animation: fade-in-out 2s ease-in-out forwards;
+  animation: fade-in-out 2s ease-in-out forwards;
 }
 
 /* Scrollbar */
 ::-webkit-scrollbar {
-width: 8px;
+  width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-background: #161b22;
+  background: #161b22;
 }
 
 ::-webkit-scrollbar-thumb {
-background: #9fef00;
-border-radius: 4px;
+  background: #9fef00;
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-background: #7fbf00;
+  background: #7fbf00;
 }
 
 #deleteButton {
-background-color: #ff3e3e1a;
-color: #ff3e3e;
-border: none;
+  background-color: #ff3e3e1a;
+  color: #ff3e3e;
+  border: none;
 }
 
 #deleteButton:hover  {
-background-color: #7d1b14;
+  background-color: #7d1b14;
+}
 
+/* Responsive Overrides for widths 1095px or less */
+@media (max-width: 1095px) {
+  .sm\:flex-row {
+    flex-direction: column !important;
+  }
+  .sm\:w-64 {
+    width: 100% !important;
+  }
+  .sm\:grid-cols-2 {
+    grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+  }
+  .sm\:grid-cols-3 {
+    grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+  }
 }
 </style>
