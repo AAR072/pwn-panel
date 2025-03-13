@@ -1,38 +1,49 @@
-# sv
+# Pwn Panel 
+> *A lightweight CTF notetaking tool.*
+<hr>
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+## Elevator Pitch
+*10 Tmux windows. A messy notes.txt. Does it have to be this way?*
+<br>
+Staying organized during Capture the Flag (CTF) challenges is tough. Between multiple Tmux windows and a messy notes.txt, it's easy to lose track of important details. Pwn Panel streamlines this process by providing a simple, organized interface to manage machines, generate helpful commands, and parse tool outputs—all in one place.
 
-## Creating a project
+# Pwn-Panel Features
 
-If you're seeing this, you've probably already done this step. Congrats!
+## 1. Machine Management
+- **Add Machine**: Add a new machine with a name and IP address to track.
+- **Delete Machine**: Delete a machine from the list with a confirmation prompt.
+- **Machine List**: Display a list of added machines with clickable entries to view more details.
 
-```bash
-# create a new project in the current directory
-npx sv create
+## 2. Export/Import Machine Data
+- **Export Data**: Export all machine data to a JSON file for backup or transfer.
+- **Import Data**: Import machine data from a JSON file, allowing easy restoration or sharing.
 
-# create a new project in my-app
-npx sv create my-app
-```
+## 3. Machine Information Display
+- **Machine Overview**: View detailed information for a selected machine, including:
+  - **Open Ports**: List of open ports, including the port number, protocol (TCP/UDP), service, and version (if available).
+  - **Subdomains**: List of discovered subdomains with their HTTP status codes, indicating whether they are accessible, redirecting, forbidden, not found, or have server errors.
+  - **Paths**: List of paths (directories or files) discovered through directory brute force tools like Dirb, displayed with status codes and type.
 
-## Developing
+## 4. Command Generation
+- **Nmap Command**: Generate an Nmap scan command for the selected machine's IP address.
+- **Dirb Command**: Generate a Dirb command for discovering directories on the selected machine.
+- **FFUF Command**: Generate an FFUF command to discover subdomains for the selected machine's IP.
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+## 5. Clipboard Interaction
+- **Copy Command**: Copy generated commands to the clipboard with a notification confirming the action.
+- **Paste Handling**: Paste output from tools like Nmap, Dirb, or FFUF directly into the page, where it will be cleaned and displayed.
 
-```bash
-npm run dev
+## 6. Real-Time Data Parsing
+- **Nmap Output Parsing**: Automatically parse and extract open ports and service information from Nmap's output.
+- **Dirb Output Parsing**: Automatically parse and extract directories and files from Dirb’s output.
+- **FFUF Output Parsing**: Automatically parse and extract subdomains from FFUF’s output.
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
+## 7. Local Storage Persistence
+- **Data Persistence**: Machines data is stored in `localStorage`, allowing persistence across page reloads and sessions.
+- **Automatic Sync**: Automatically sync machine data to `localStorage` whenever changes are made.
 
-## Building
-
-To create a production version of your app:
-
-```bash
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+### Tech Stack
+- Framework: SvelteKit
+- Scripts: JavaScript 
+- Styling: Tailwind CSS
+- Deployment: Cloudflare
