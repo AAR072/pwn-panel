@@ -2,6 +2,8 @@
 > *A lightweight CTF notetaking tool.*
 <hr>
 
+Visit at: https://pwn-panel.pages.dev/
+
 ## Elevator Pitch
 *10 Tmux windows. A messy notes.txt. Does it have to be this way?*
 <br>
